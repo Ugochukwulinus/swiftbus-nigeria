@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - SwiftBus Nigeria</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
+    <style>
+        body {
+            background: linear-gradient(rgba(13, 110, 253, 0.4), rgba(10, 88, 202, 0.4)), url('/static/images/profile_bg.jpg');
+            background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh;
+        }
+        .navbar { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important; box-shadow: 0 2px 15px rgba(0,0,0,0.2); padding: 15px 0; }
+        .navbar-brand { font-size: 1.5rem; font-weight: 700; color: white !important; text-decoration: none; }
+        .nav-actions { display: flex; gap: 10px; }
+        .btn-nav { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 8px; padding: 8px 20px; font-weight: 500; text-decoration: none; }
+        .btn-nav:hover { background: white; color: #0d6efd; }
+        .profile-container { padding: 40px 20px 60px; }
+        .profile-header { background: rgba(255,255,255,0.98); border-radius: 15px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 30px; }
+        .profile-cover { height: 120px; background: linear-gradient(135deg, #0d6efd 0%, #00c6a7 100%); }
+        .profile-info { padding: 0 30px 25px; }
+        .profile-avatar {
+            width: 100px; height: 100px; border-radius: 50%;
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white; font-size: 2.5rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            border: 5px solid white; margin-top: -50px; margin-bottom: 15px;
+            overflow: hidden; position: relative; cursor: pointer;
+        }
+        .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%; background: rgba(0, 0, 0, 0.55);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.4rem; opacity: 0; transition: opacity 0.3s;
+        }
+        .profile-avatar:hover .avatar-overlay { opacity: 1; }
+        .profile-name { font-weight: 700; color: #333; margin-bottom: 3px; }
+        .profile-email { color: #6c757d; }
+        .role-badge { background: #e7f1ff; color: #0d6efd; padding: 6px 15px; border-radius: 20px; font-weight: 600; }
+        .stat-card { background: rgba(255,255,255,0.98); border-radius: 15px; padding: 25px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .stat-card i { font-size: 2rem; color: #0d6efd; margin-bottom: 10px; }
+        .stat-card h3 { font-weight: 700; color: #333; }
+        .stat-card small { color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .custom-card { background: rgba(255,255,255,0.98); border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); overflow: hidden; }
+        .card-header { background: white; border-bottom: 2px solid #f0f0f0; padding: 20px 30px; }
+        .card-header h5 { margin: 0; font-weight: 600; color: #333; }
+        .card-header h5 i { color: #0d6efd; }
+        .card-body { padding: 30px; }
+        .form-label { font-weight: 600; color: #555; }
+        .form-control { border-radius: 8px; padding: 12px 15px; border: 1px solid #ddd; }
+        .form-control:focus { border-color: #0d6efd; box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25); }
+        .btn-save { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border: none; border-radius: 8px; padding: 12px 30px; font-weight: 600; color: white; }
+        .btn-save:hover { color: white; transform: translateY(-2px); }
+        .modal-avatar { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; margin: 0 auto; display: block; }
+        .modal-initial {
+            width: 180px; height: 180px; border-radius: 50%; margin: 0 auto;
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white; font-size: 4rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .flash-alert { position: fixed; top: 90px; right: 20px; z-index: 2000; min-width: 320px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.25); border: none; font-weight: 500; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard"><i class="fas fa-bus me-2"></i>SwiftBus Nigeria</a>
+        <div class="nav-actions">
+            <a href="/dashboard" class="btn btn-nav"><i class="fas fa-home me-2"></i>Dashboard</a>
+            <a href="/my-bookings" class="btn btn-nav"><i class="fas fa-ticket-alt me-2"></i>My Bookings</a>
+            <a href="/logout" class="btn btn-nav"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container profile-container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show flash-alert" role="alert">
+                    <i class="fas fa-bell me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-cover"></div>
+        <div class="profile-info">
+            <div class="profile-avatar" data-bs-toggle="modal" data-bs-target="#photoModal" title="View or change photo">
+                {% if user.profile_pic %}
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_pic) }}" alt="Profile" class="avatar-img">
+                {% else %}
+                    {{ user.username[0]|upper }}
+                {% endif %}
+                <div class="avatar-overlay"><i class="fas fa-camera"></i></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <h4 class="profile-name">{{ user.username }}</h4>
+                    <p class="profile-email mb-0"><i class="fas fa-envelope me-2"></i>{{ user.email }}</p>
+                </div>
+                <span class="role-badge"><i class="fas fa-user me-1"></i>{{ user.role|capitalize }} Account</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-route"></i>
+                <h3>{{ total_trips }}</h3>
+                <small>Trips Booked</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-chair"></i>
+                <h3>{{ total_seats }}</h3>
+                <small>Seats Reserved</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-wallet"></i>
+                <h3>₦{{ "{:,}".format(total_spent) }}</h3>
+                <small>Total Spent</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Edit Profile -->
+        <div class="col-md-6">
+            <div class="custom-card">
+                <div class="card-header"><h5><i class="fas fa-user-edit me-2"></i>Edit Profile</h5></div>
+                <div class="card-body">
+                    <form method="POST" action="/profile">
+                        <input type="hidden" name="form_type" value="update_info">
+                        <div class="mb-3">
+                            <label class="form-label">Display Name</label>
+                            <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email (cannot be changed)</label>
+                            <input type="email" class="form-control" value="{{ user.email }}" disabled>
+                        </div>
+                        <button type="submit" class="btn btn-save"><i class="fas fa-save me-2"></i>Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="col-md-6">
+            <div class="custom-card">
+                <div class="card-header"><h5><i class="fas fa-key me-2"></i>Change Password</h5></div>
+                <div class="card-body">
+                    <form method="POST" action="/profile">
+                        <input type="hidden" name="form_type" value="change_password">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" name="current_password" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="new_password" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" name="confirm_password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-save"><i class="fas fa-lock me-2"></i>Update Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Photo View/Change Modal -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px; overflow: hidden;">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-camera me-2 text-primary"></i>Profile Photo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                {% if user.profile_pic %}
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_pic) }}" alt="Profile" class="modal-avatar mb-3">
+                {% else %}
+                    <div class="modal-initial mb-3">{{ user.username[0]|upper }}</div>
+                {% endif %}
+                <form method="POST" action="/profile" enctype="multipart/form-data" id="photo-form">
+                    <input type="hidden" name="form_type" value="upload_pic">
+                    <label for="photo-input" class="btn btn-save mb-0">
+                        <i class="fas fa-upload me-2"></i>Change Photo
+                    </label>
+                    <input type="file" name="profile_pic" id="photo-input" accept="image/*" style="display: none;" required>
+                </form>
+                <small class="text-muted d-block mt-2">PNG, JPG, JPEG or GIF — uploads instantly after selection.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script>
+    document.querySelectorAll('.flash-alert').forEach(function (el) {
+        setTimeout(function () { bootstrap.Alert.getOrCreateInstance(el).close(); }, 4000);
+    });
+    document.getElementById('photo-input').addEventListener('change', function () {
+        if (this.files && this.files.length > 0) {
+            document.getElementById('photo-form').submit();
+        }
+    });
+</script>
+</body>
+</html>

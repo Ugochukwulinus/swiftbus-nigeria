@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Route - SwiftBus Nigeria</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
+    <style>
+        body { background: #f0f2f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .edit-card { background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); max-width: 550px; width: 100%; overflow: hidden; }
+        .card-header { background: linear-gradient(135deg, #212529 0%, #343a40 100%); color: white; padding: 20px 30px; }
+        .card-header h5 { margin: 0; font-weight: 700; }
+        .card-body { padding: 30px; }
+        .form-label { font-weight: 600; color: #555; }
+        .form-control, .form-select { border-radius: 8px; padding: 10px 14px; }
+        .btn-save { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; }
+        .btn-save:hover { color: white; }
+        .btn-back { background: #6c757d; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; text-decoration: none; display: inline-block; }
+    </style>
+</head>
+<body>
+<div class="edit-card">
+    <div class="card-header"><h5><i class="fas fa-pen me-2"></i>Edit Route</h5></div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label">From</label>
+                    <input type="text" name="departure" class="form-control" value="{{ route.departure }}" required>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">To</label>
+                    <input type="text" name="destination" class="form-control" value="{{ route.destination }}" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Bus Type</label>
+                    <select name="bus_type" class="form-select">
+                        {% for vt in vehicle_types %}
+                        <option value="{{ vt.name }}" {% if route.bus_type == vt.name %}selected{% endif %}>{{ vt.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Departure Time</label>
+                    <input type="text" name="departure_time" class="form-control" value="{{ route.departure_time }}" required>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Departure Date</label>
+                    <input type="date" name="departure_date" class="form-control" value="{{ route.departure_date }}">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Price (₦)</label>
+                    <input type="number" name="price" class="form-control" value="{{ route.price }}" min= "1" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Available Seats</label>
+                    <input type="number" name="available_seats" class="form-control" value="{{ route.available_seats }}" min="1" required>
+                </div>
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-save w-100"><i class="fas fa-save me-2"></i>Save Changes</button>
+                    <a href="/admin" class="btn btn-back">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

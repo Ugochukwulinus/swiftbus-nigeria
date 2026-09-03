@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SwiftBus Nigeria</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
+    <style>
+        body {
+            background: linear-gradient(rgba(13, 20, 30, 0.55), rgba(13, 20, 30, 0.55)),
+                        url("{{ url_for('static', filename='images/admin_bg.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        .navbar { background: linear-gradient(135deg, #212529 0%, #343a40 100%) !important; padding: 15px 0; box-shadow: 0 2px 15px rgba(0,0,0,0.2); }
+        .navbar-brand { font-size: 1.4rem; font-weight: 700; color: white !important; text-decoration: none; }
+        .nav-actions { display: flex; gap: 10px; }
+        .btn-nav { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 8px; padding: 8px 20px; font-weight: 500; text-decoration: none; }
+        .btn-nav:hover { background: white; color: #212529; }
+        .admin-container { padding: 40px 20px 60px; }
+        .page-title { font-weight: 700; color: #ffffff; margin-bottom: 30px; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); }
+        /* FIXED STAT CARDS: equal height, no overflow */
+        .stat-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 15px; height: 100%; }
+        .stat-icon { width: 55px; height: 55px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: white; flex-shrink: 0; }
+        .stat-text { min-width: 0; }
+        .stat-card h3 { margin: 0; font-weight: 700; font-size: 1.4rem; overflow-wrap: break-word; }
+        .stat-card small { color: #6c757d; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; font-size: 0.72rem; }
+        .custom-card { background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); margin-bottom: 30px; overflow: hidden; }
+        .card-header { background: white; border-bottom: 2px solid #f0f0f0; padding: 20px 30px; }
+        .card-header h5 { margin: 0; font-weight: 600; color: #333; }
+        .card-header h5 i { color: #0d6efd; }
+        .card-body { padding: 30px; }
+        .form-label { font-weight: 600; color: #555; }
+        .form-control, .form-select { border-radius: 8px; padding: 10px 14px; }
+        .btn-add { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; }
+        .btn-add:hover { color: white; transform: translateY(-2px); }
+        .btn-edit { background: #e7f1ff; color: #0d6efd; border: 1px solid #0d6efd; border-radius: 8px; font-weight: 600; }
+        .btn-edit:hover { background: #0d6efd; color: white; }
+        .btn-del { background: #fdecee; color: #dc3545; border: 1px solid #dc3545; border-radius: 8px; font-weight: 600; }
+        .btn-del:hover { background: #dc3545; color: white; }
+        .table thead th { background: #f8f9fa; font-weight: 600; }
+        .flash-alert { position: fixed; top: 90px; right: 20px; z-index: 2000; min-width: 320px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.25); border: none; font-weight: 500; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/admin"><i class="fas fa-bus me-2"></i>SwiftBus Nigeria <span class="badge bg-danger">Admin</span></a>
+        <div class="nav-actions">
+            <a href="/dashboard" class="btn btn-nav"><i class="fas fa-home me-2"></i>Client View</a>
+            <a href="/logout" class="btn btn-nav"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container admin-container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show flash-alert" role="alert">
+                    <i class="fas fa-bell me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <h2 class="page-title"><i class="fas fa-shield-alt me-2"></i>Admin Control Panel</h2>
+
+    <!-- Stats (aligned) -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#0d6efd;"><i class="fas fa-route"></i></div>
+                <div class="stat-text"><h3>{{ routes|length }}</h3><small>Active Routes</small></div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#198754;"><i class="fas fa-ticket-alt"></i></div>
+                <div class="stat-text"><h3>{{ bookings|length }}</h3><small>Total Bookings</small></div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#00c6a7;"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="stat-text"><h3>₦{{ "{:,}".format(total_revenue) }}</h3><small>Total Revenue</small></div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#6f42c1;"><i class="fas fa-users"></i></div>
+                <div class="stat-text"><h3>{{ total_clients }}</h3><small>Registered Clients</small></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Verification -->
+    <div class="custom-card">
+        <div class="card-header"><h5><i class="fas fa-qrcode me-2"></i>Verify Client Ticket</h5></div>
+        <div class="card-body">
+            <form method="GET" action="/admin" class="row g-2">
+                <div class="col-md-8">
+                    <input type="text" name="ticket" class="form-control" placeholder="Enter ticket number e.g. SWB-0015 or 15" value="{{ ticket_code or '' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-add w-100"><i class="fas fa-search me-2"></i>Verify Ticket</button>
+                </div>
+            </form>
+
+            {% if ticket_code %}
+                {% if verified_booking %}
+                <div class="alert alert-light border mt-4 mb-0 p-4">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h6 class="fw-bold mb-2">SWB-{{ "%04d"|format(verified_booking.id) }} — {{ verified_booking.user.username }}</h6>
+                            <p class="mb-1"><i class="fas fa-route me-2 text-primary"></i>{{ verified_booking.route.departure }} → {{ verified_booking.route.destination }}</p>
+                            <p class="mb-0"><i class="fas fa-chair me-2 text-primary"></i>Seats: {{ verified_booking.seats }} &nbsp;|&nbsp; <i class="fas fa-bus me-2 text-primary"></i>{{ verified_booking.route.bus_type }}</p>
+                        </div>
+                        <div class="text-end">
+                            {% if verified_booking.status == 'Boarded' %}
+                                <span class="badge bg-primary fs-6"><i class="fas fa-check-double me-1"></i>Already Boarded</span>
+                            {% else %}
+                                <form method="POST" action="/admin/confirm-boarding/{{ verified_booking.id }}">
+                                    <button type="submit" class="btn btn-add"><i class="fas fa-check-double me-2"></i>Confirm Boarding</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-danger mt-4 mb-0"><i class="fas fa-times-circle me-2"></i>No ticket found for "<strong>{{ ticket_code }}</strong>".</div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Add Route -->
+        <div class="col-lg-5">
+            <div class="custom-card">
+                <div class="card-header"><h5><i class="fas fa-plus-circle me-2"></i>Add New Route</h5></div>
+                <div class="card-body">
+                    <form method="POST" action="/admin/add-route">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label">From</label>
+                                <input type="text" name="departure" class="form-control" placeholder="e.g. Lagos" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">To</label>
+                                <input type="text" name="destination" class="form-control" placeholder="e.g. Abuja" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Bus Type</label>
+                                <select name="bus_type" class="form-select">
+                                    {% for vt in vehicle_types %}
+                                    <option value="{{ vt.name }}">{{ vt.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Departure Time</label>
+                                <input type="text" name="departure_time" class="form-control" placeholder="e.g. 08:00 AM" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Departure Date</label>
+                                <input type="date" name="departure_date" class="form-control" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Price (₦)</label>
+                                <input type="number" name="price" class="form-control" min="1" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Available Seats</label>
+                                <input type="number" name="available_seats" class="form-control" min="1" required>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-add w-100"><i class="fas fa-plus me-2"></i>Add Route</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Routes -->
+        <div class="col-lg-7">
+            <div class="custom-card">
+                <div class="card-header"><h5><i class="fas fa-cogs me-2"></i>Manage Routes</h5></div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                         <thead><tr><th>Route</th><th>Type</th><th>Date</th><th>Time</th><th>Price</th><th>Seats</th><th>Actions</th></tr></thead>
+                            <tbody>
+                                {% for r in routes %}
+                                <tr>
+                                    <td><strong>{{ r.departure }} → {{ r.destination }}</strong></td>
+                                    <td><small>{{ r.bus_type }}</small></td>
+                                    <td><small>{{ r.departure_date }}</small></td>
+                                    <td>{{ r.departure_time }}</td>
+                                    <td>₦{{ "{:,}".format(r.price) }}</td>
+                                    <td>{{ r.available_seats }}</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="/admin/edit-route/{{ r.id }}" class="btn btn-sm btn-edit"><i class="fas fa-pen"></i></a>
+                                            <form method="POST" action="/admin/delete-route/{{ r.id }}"
+                                                  onsubmit="return confirm('Delete this route? Its bookings will also be removed.');">
+                                                <button type="submit" class="btn btn-sm btn-del"><i class="fas fa-trash"></i></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Vehicle Types -->
+    <div class="custom-card">
+        <div class="card-header"><h5><i class="fas fa-bus-alt me-2"></i>Vehicle Types</h5></div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                {% for vt in vehicle_types %}
+                <div class="d-inline-flex align-items-center gap-2 badge bg-light border px-3 py-2 text-dark" style="font-size:0.85rem;">
+                    <span><i class="fas fa-bus me-1 text-primary"></i>{{ vt.name }} — {{ vt.seat_capacity }} seats</span>
+                    <form method="POST" action="/admin/delete-vehicle-type/{{ vt.id }}"
+                          onsubmit="return confirm('Delete vehicle type {{ vt.name }}?');">
+                        <button type="submit" class="btn btn-sm p-0 border-0" style="color:#dc3545; line-height:1;" title="Delete">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            <form method="POST" action="/admin/add-vehicle-type" class="row g-2">
+                <div class="col-md-5">
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Luxury Bus (30-seater)" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="seat_capacity" class="form-control" placeholder="Seats e.g. 30" min="1" required>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-add w-100"><i class="fas fa-plus me-2"></i>Add Vehicle Type</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- All Bookings -->
+    <div class="custom-card">
+        <div class="card-header"><h5><i class="fas fa-receipt me-2"></i>All Client Bookings</h5></div>
+        <div class="card-body">
+            {% if bookings %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead><tr><th>Ticket</th><th>Client</th><th>Route</th><th>Seats</th><th>Total</th><th>Status</th><th>Booked On</th></tr></thead>
+                    <tbody>
+                        {% for b in bookings %}
+                        <tr>
+                            <td><strong>SWB-{{ "%04d"|format(b.id) }}</strong></td>
+                            <td>{{ b.user.username }}</td>
+                            <td>{{ b.route.departure }} → {{ b.route.destination }}</td>
+                            <td>{{ b.seats }}</td>
+                            <td class="text-success fw-bold">₦{{ "{:,}".format(b.total_price) }}</td>
+                            <td>
+                                {% if b.status == 'Boarded' %}<span class="badge bg-primary">Boarded</span>
+                                {% else %}<span class="badge bg-success">Confirmed</span>{% endif %}
+                            </td>
+                            <td><small>{{ b.booking_date.strftime('%d %b %Y, %I:%M %p') }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center mb-0">No bookings yet.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script>
+    document.querySelectorAll('.flash-alert').forEach(function (el) {
+        setTimeout(function () { bootstrap.Alert.getOrCreateInstance(el).close(); }, 4000);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftBus Nigeria - Bus Seat Reservation System</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
+    <style>
+        body {
+            background: linear-gradient(rgba(10, 20, 40, 0.75), rgba(10, 20, 40, 0.85)),
+                        url("{{ url_for('static', filename='images/admin_bg.jpg') }}");
+            background-size: cover; background-position: center; background-attachment: fixed;
+            min-height: 100vh; color: white;
+        }
+        .top-nav { padding: 20px 0; }
+        .brand { font-size: 1.5rem; font-weight: 700; color: white; text-decoration: none; }
+        .btn-login-nav { border: 1px solid white; color: white; border-radius: 8px; padding: 8px 25px; font-weight: 600; text-decoration: none; }
+        .btn-login-nav:hover { background: white; color: #0d6efd; }
+        .btn-signup-nav { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; border-radius: 8px; padding: 8px 25px; font-weight: 600; text-decoration: none; }
+        .btn-signup-nav:hover { color: white; transform: translateY(-2px); }
+        .hero { text-align: center; padding: 70px 20px 50px; }
+        .hero-badge { display: inline-block; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); padding: 8px 20px; border-radius: 30px; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .hero h1 { font-size: 3.2rem; font-weight: 800; text-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .hero p { font-size: 1.15rem; opacity: 0.9; max-width: 700px; margin: 15px auto 30px; }
+        .btn-hero { padding: 14px 40px; border-radius: 10px; font-weight: 700; font-size: 1.05rem; text-decoration: none; display: inline-block; margin: 5px; }
+        .btn-hero-primary { background: linear-gradient(135deg, #0d6efd, #0a58ca); color: white; }
+        .btn-hero-primary:hover { color: white; transform: translateY(-2px); }
+        .btn-hero-light { background: white; color: #0d6efd; }
+        .btn-hero-light:hover { color: #0d6efd; transform: translateY(-2px); }
+        .info-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 15px; padding: 30px; height: 100%; backdrop-filter: blur(8px); }
+        .info-card h5 { font-weight: 700; margin-bottom: 20px; }
+        .info-card h5 i { color: #00c6a7; }
+        .info-card p { opacity: 0.9; }
+        .contact-line { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        footer { text-align: center; padding: 30px 20px; opacity: 0.75; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<nav class="top-nav">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a class="brand" href="/"><i class="fas fa-bus me-2"></i>SwiftBus Nigeria</a>
+        <div class="d-flex gap-2">
+            <a href="/login" class="btn btn-login-nav">Login</a>
+            <a href="/signup" class="btn btn-signup-nav">Sign Up</a>
+        </div>
+    </div>
+</nav>
+
+<header class="hero">
+    <div class="container">
+        <span class="hero-badge"><i class="fas fa-graduation-cap me-2"></i>Final Year Project • 2025/2026 Session</span>
+        <h1>Bus Seat Reservation System</h1>
+        <p>A web-based platform for booking interstate bus seats in real time — with live seat selection, e-tickets, and a full admin control panel.</p>
+        <div>
+            <a href="/login" class="btn-hero btn-hero-primary"><i class="fas fa-sign-in-alt me-2"></i>Login</a>
+            <a href="/signup" class="btn-hero btn-hero-light"><i class="fas fa-user-plus me-2"></i>Create Account</a>
+        </div>
+    </div>
+</header>
+
+<div class="container pb-5">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="info-card">
+                <h5><i class="fas fa-laptop-code me-2"></i>About This Project</h5>
+                <p>This system was designed and developed as a final-year academic project. It demonstrates a complete reservation workflow:</p>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><i class="fas fa-check-circle me-2 text-success"></i>Real-time seat selection</li>
+                    <li class="mb-2"><i class="fas fa-check-circle me-2 text-success"></i>Ticket printing & cancellation</li>
+                    <li class="mb-2"><i class="fas fa-check-circle me-2 text-success"></i>Admin route & revenue management</li>
+                    <li><i class="fas fa-check-circle me-2 text-success"></i>Secure role-based login</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <h5><i class="fas fa-user-graduate me-2"></i>Developer</h5>
+                <p class="mb-1"><strong>Name:</strong> AUGUSTINE LINUS UGOCHUKWU</p>
+                <p class="mb-1"><strong>Matric No:</strong> EBSU/2022/0115124</p>
+                <p class="mb-1"><strong>Department:</strong> COMPUTER SCIENCE</p>
+                <p class="mb-0"><strong>Institution:</strong> EBONYI STATE UNIVERSITY</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-card">
+                <h5><i class="fas fa-envelope-open-text me-2"></i>Contact for Enquiry</h5>
+                <div class="contact-line"><i class="fas fa-envelope"></i> Ugochukwulinus11@gmail.com</div>
+                <div class="contact-line"><i class="fas fa-phone"></i> +234 902 242 8887</div>
+                <p class="mb-0 mt-3">I'm happy to answer questions, give a live demonstration, or discuss the technology behind this system.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    © 2026 • Developed by Augustine Linus Ugochukwu • Department of Computer Science, Ebonyi State University
+</footer>
+
+</body>
+</html>

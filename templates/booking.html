@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Seats - SwiftBus Nigeria</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
+    <style>
+        body {
+            /* Paste your background image URL inside url('') if you want one */
+            background: linear-gradient(rgba(13, 110, 253, 0.3), rgba(10, 88, 202, 0.3)), url('/static/images/booking_bg.jpg');
+            background-size: cover; background-attachment: fixed; min-height: 100vh;
+        }
+        .navbar { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important; padding: 15px 0; }
+        .navbar-brand { color: white !important; font-weight: 700; text-decoration: none; }
+        .booking-container { padding: 40px 20px; }
+        .custom-card { background: rgba(255, 255, 255, 0.98); border-radius: 15px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); margin-bottom: 30px; overflow: hidden; }
+        .card-header { background: white; border-bottom: 2px solid #f0f0f0; padding: 25px 30px; }
+        .card-header h4 { margin: 0; font-weight: 600; color: #333; }
+        .card-body { padding: 30px; }
+
+        .bus-layout { background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 20px 20px 5px 5px; padding: 30px; max-width: 400px; margin: 0 auto; position: relative; }
+        .driver-seat { display: block; width: fit-content; margin: 0 0 20px auto; background: #e9ecef; padding: 8px 14px; border-radius: 10px; font-size: 0.8rem; color: #6c757d; font-weight: bold; }
+        .seat-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; }
+        .seat-pair { display: flex; gap: 10px; }
+        .aisle { width: 30px; }
+
+        .seat { width: 45px; height: 45px; background: white; border: 2px solid #0d6efd; border-radius: 8px 8px 12px 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 600; color: #0d6efd; transition: all 0.2s; position: relative; }
+        .seat:hover:not(.booked) { background: #e7f1ff; transform: scale(1.05); }
+        .seat.selected { background: #198754 !important; border-color: #198754 !important; color: white !important; }
+        .seat.booked { background: #dc3545 !important; border-color: #dc3545 !important; color: white !important; cursor: not-allowed; opacity: 0.6; }
+        .seat input[type="checkbox"] { position: absolute; opacity: 0; cursor: pointer; }
+
+        .legend { display: flex; justify-content: center; gap: 20px; margin-top: 20px; font-size: 0.9rem; }
+        .legend-item { display: flex; align-items: center; gap: 8px; }
+        .legend-box { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #ccc; }
+        .legend-box.available { background: white; border-color: #0d6efd; }
+        .legend-box.selected { background: #198754; border-color: #198754; }
+        .legend-box.booked { background: #dc3545; border-color: #dc3545; }
+
+        .summary-box { background: #f8f9fa; border-radius: 10px; padding: 20px; }
+        .btn-confirm { background: linear-gradient(135deg, #198754 0%, #146c43 100%); border: none; border-radius: 8px; padding: 12px; font-weight: 600; color: white; width: 100%; }
+        .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(25, 135, 84, 0.4); color: white; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard"><i class="fas fa-arrow-left me-2"></i>SwiftBus Nigeria</a>
+    </div>
+</nav>
+
+<div class="container booking-container">
+    <div class="row">
+        <!-- Seat Map -->
+        <div class="col-md-7">
+            <div class="custom-card">
+                <div class="card-header">
+                    <h4><i class="fas fa-bus me-2 text-primary"></i>Select Your Seats</h4>
+                    <small class="text-muted">{{ route.departure }} to {{ route.destination }} | {{ route.departure_time }}</small>
+                </div>
+                <div class="card-body">
+
+                    <!-- Flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="bus-layout">
+                        <div class="driver-seat"><i class="fas fa-user me-1"></i> Driver</div>
+                        <form method="POST" action="/book/{{ route.id }}">
+                            <input type="hidden" id="seat-price" value="{{ route.price }}">
+                            {% for row_start in range(1, total_seats + 1, 4) %}
+                            <div class="seat-row">
+                                <div class="seat-pair">
+                                    {% for i in range(row_start, row_start + 2) %}
+                                        {% if i <= total_seats %}
+                                            {% set seat_id = i|string %}
+                                            <label class="seat {% if seat_id in booked_seats %}booked{% endif %}" id="seat-label-{{ seat_id }}">
+                                                {{ seat_id }}
+                                                <input type="checkbox" name="seats" value="{{ seat_id }}"
+                                                       {% if seat_id in booked_seats %}disabled{% endif %}
+                                                       onchange="toggleSeat('{{ seat_id }}')">
+                                            </label>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="aisle"></div>
+                                <div class="seat-pair">
+                                    {% for i in range(row_start + 2, row_start + 4) %}
+                                        {% if i <= total_seats %}
+                                            {% set seat_id = i|string %}
+                                            <label class="seat {% if seat_id in booked_seats %}booked{% endif %}" id="seat-label-{{ seat_id }}">
+                                                {{ seat_id }}
+                                                <input type="checkbox" name="seats" value="{{ seat_id }}"
+                                                       {% if seat_id in booked_seats %}disabled{% endif %}
+                                                       onchange="toggleSeat('{{ seat_id }}')">
+                                            </label>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            <div class="legend">
+                                <div class="legend-item"><div class="legend-box available"></div> Available</div>
+                                <div class="legend-item"><div class="legend-box selected"></div> Selected</div>
+                                <div class="legend-item"><div class="legend-box booked"></div> Booked</div>
+                            </div>
+
+                            <div class="mt-4 text-center">
+                                <button type="submit" class="btn btn-confirm"><i class="fas fa-check-circle me-2"></i>Confirm Booking</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Summary -->
+        <div class="col-md-5">
+            <div class="custom-card">
+                <div class="card-header"><h4><i class="fas fa-receipt me-2 text-primary"></i>Booking Summary</h4></div>
+                <div class="card-body">
+                    <div class="summary-box mb-3">
+                        <h6 class="fw-bold text-muted mb-3">TRIP DETAILS</h6>
+                        <div class="d-flex justify-content-between mb-2"><span>Route:</span><strong>{{ route.departure }} → {{ route.destination }}</strong></div>
+                        <div class="d-flex justify-content-between mb-2"><span>Bus Type:</span><strong>{{ route.bus_type }}</strong></div>
+                        <div class="d-flex justify-content-between mb-2"><span>Time:</span><strong>{{ route.departure_time }}</strong></div>
+                        <div class="d-flex justify-content-between"><span>Price per seat:</span><strong class="text-success">₦{{ "{:,}".format(route.price) }}</strong></div>
+                    </div>
+                    <div class="summary-box">
+                        <h6 class="fw-bold text-muted mb-3">YOUR SELECTION</h6>
+                        <div class="d-flex justify-content-between mb-2"><span>Selected Seats:</span><strong id="selected-seats-display" class="text-primary">None</strong></div>
+                        <div class="d-flex justify-content-between mb-2"><span>Number of Seats:</span><strong id="seat-count">0</strong></div>
+                        <hr>
+                        <div class="d-flex justify-content-between fs-5"><span class="fw-bold">Total Amount:</span><strong class="text-success" id="total-price">₦0</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const pricePerSeat = parseInt(document.getElementById('seat-price').value, 10);
+
+    function toggleSeat(seatId) {
+        const checkbox = document.querySelector(`input[value="${seatId}"]`);
+        const label = document.getElementById(`seat-label-${seatId}`);
+        if (checkbox.checked) { label.classList.add('selected'); } 
+        else { label.classList.remove('selected'); }
+        updateSummary();
+    }
+
+    function updateSummary() {
+        const checkboxes = document.querySelectorAll('input[name="seats"]:checked');
+        const selectedSeats = Array.from(checkboxes).map(cb => cb.value);
+        document.getElementById('selected-seats-display').innerText = selectedSeats.length > 0 ? selectedSeats.join(', ') : 'None';
+        document.getElementById('seat-count').innerText = selectedSeats.length;
+        document.getElementById('total-price').innerText = '₦' + (selectedSeats.length * pricePerSeat).toLocaleString();
+    }
+</script>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - SwiftBus Nigeria</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
+    <style>
+        .btn-book-trip {
+             background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+             border: none; border-radius: 10px; padding: 12px 30px;
+             font-weight: 600; color: white; text-decoration: none; display: inline-block;
+        }
+        .btn-book-trip:hover { color: white; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(25, 135, 84, 0.4); }
+        body {
+            background: linear-gradient(rgba(13, 110, 253, 0.4), rgba(10, 88, 202, 0.4)), url('/static/images/bookings_bg.jpg');
+            background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh;
+        }
+        .navbar { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important; box-shadow: 0 2px 15px rgba(0,0,0,0.2); padding: 15px 0; }
+        .navbar-brand { font-size: 1.5rem; font-weight: 700; color: white !important; text-decoration: none; }
+        .nav-actions { display: flex; gap: 10px; }
+        .btn-nav { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 8px; padding: 8px 20px; font-weight: 500; text-decoration: none; }
+        .btn-nav:hover { background: white; color: #0d6efd; }
+        .bookings-container { padding: 40px 20px 60px; }
+        .page-title { color: white; font-weight: 700; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .ticket-card { background: rgba(255,255,255,0.98); border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 25px; overflow: hidden; }
+        .ticket-header { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .ticket-header h5 { margin: 0; font-weight: 700; }
+        .ticket-code { background: rgba(255,255,255,0.2); padding: 6px 15px; border-radius: 20px; font-weight: 600; letter-spacing: 1px; }
+        .ticket-body { padding: 25px 30px; }
+        .info-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; font-weight: 600; margin-bottom: 4px; }
+        .info-value { font-weight: 600; color: #333; }
+        .ticket-divider { border-top: 2px dashed #dee2e6; margin: 20px 0; }
+        .seat-chip { background: #e7f1ff; color: #0d6efd; border-radius: 20px; padding: 5px 14px; font-weight: 600; display: inline-block; margin: 2px; }
+        .total-price { font-size: 1.4rem; font-weight: 700; color: #198754; }
+        .btn-print { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border: none; border-radius: 8px; padding: 10px 25px; font-weight: 600; color: white; }
+        .btn-print:hover { color: white; transform: translateY(-2px); }
+        .btn-cancel { background: transparent; border: 2px solid #dc3545; color: #dc3545; border-radius: 8px; padding: 8px 20px; font-weight: 600; }
+        .btn-cancel:hover { background: #dc3545; color: white; }
+        .empty-state { background: rgba(255,255,255,0.98); border-radius: 15px; padding: 60px 30px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .empty-state > i { font-size: 4rem; color: #0d6efd; margin-bottom: 20px; }
+        .flash-alert { position: fixed; top: 90px; right: 20px; z-index: 2000; min-width: 320px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.25); border: none; font-weight: 500; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* PRINT RULES: only the selected ticket prints */
+        @media print {
+            .navbar, .btn-print, .btn-cancel, .flash-alert, .page-title, .empty-state { display: none !important; }
+            body { background: white !important; }
+            .ticket-card { box-shadow: none !important; }
+            .ticket-card:not(.print-target) { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard"><i class="fas fa-bus me-2"></i>SwiftBus Nigeria</a>
+        <div class="nav-actions">
+            <a href="/dashboard" class="btn btn-nav"><i class="fas fa-home me-2"></i>Dashboard</a>
+            <a href="/logout" class="btn btn-nav"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container bookings-container">
+    <h2 class="page-title"><i class="fas fa-ticket-alt me-2"></i>My Bookings</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show flash-alert" role="alert">
+                    <i class="fas fa-bell me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if bookings %}
+        {% for booking in bookings %}
+        <div class="ticket-card">
+            <div class="ticket-header">
+                <h5><i class="fas fa-route me-2"></i>{{ booking.route.departure }} → {{ booking.route.destination }}</h5>
+                <span class="ticket-code">Ticket: SWB-{{ "%04d"|format(booking.id) }}</span>
+            </div>
+            <div class="ticket-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="info-label">Bus Type</div>
+                        <div class="info-value">{{ booking.route.bus_type }}</div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="info-label">Departure Time</div>
+                        <div class="info-value">{{ booking.route.departure_time }}</div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="info-label">Booked On</div>
+                        <div class="info-value">{{ booking.booking_date.strftime('%d %b %Y, %I:%M %p') }}</div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="info-label">Status</div>
+                        {% if trip_departed(booking.route) %}<span class="badge bg-secondary">Completed</span>
+                        {% elif booking.status == 'Boarded' %}
+                            <span class="badge bg-primary">Boarded</span>
+                        {% else %}
+                            <span class="badge bg-success">Confirmed</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="ticket-divider"></div>
+                <div class="row align-items-center">
+                    <div class="col-md-5">
+                        <div class="info-label">Your Seats</div>
+                        <div>
+                            {% for seat in booking.seats.split(',') %}
+                                <span class="seat-chip"><i class="fas fa-chair me-1"></i>{{ seat }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-label">Total Paid</div>
+                        <div class="total-price">₦{{ "{:,}".format(booking.total_price) }}</div>
+                    </div>
+                    <!-- Buttons stacked neatly with flex column (no overlap) -->
+                    <div class="col-md-3">
+                        <div class="d-flex flex-column align-items-md-end gap-2">
+                            <button class="btn btn-print" onclick="printTicket(this)"><i class="fas fa-print me-2"></i>Print Ticket</button>
+                            <form method="POST" action="/cancel/{{ booking.id }}" 
+                                  onsubmit="return confirm('Cancel this ticket? The seats will be released and this cannot be undone.');">
+                                <button type="submit" class="btn btn-cancel"><i class="fas fa-times-circle me-2"></i>Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-ticket-alt"></i>
+            <h4>No Bookings Yet</h4>
+            <p class="text-muted mb-4">You haven't booked any trips yet. Start your journey with SwiftBus today!</p>
+            <a href="/dashboard" class="btn btn-book-trip"><i class="fas fa-bus me-2"></i>Book a Trip</a>
+        </div>
+    {% endif %}
+</div>
+
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script>
+    // Print ONLY the clicked ticket
+    function printTicket(btn) {
+        var card = btn.closest('.ticket-card');
+        card.classList.add('print-target');
+        window.print();
+        setTimeout(function () { card.classList.remove('print-target'); }, 500);
+    }
+
+    // Auto-dismiss flash popups
+    document.querySelectorAll('.flash-alert').forEach(function (el) {
+        setTimeout(function () { bootstrap.Alert.getOrCreateInstance(el).close(); }, 4000);
+    });
+</script>
+</body>
+</html>
